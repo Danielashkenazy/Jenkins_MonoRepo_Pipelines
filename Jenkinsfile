@@ -35,12 +35,14 @@ pipeline {
                 sh """
                 set -e
                 cd transaction-service
-                
+                python3 -m venv .venv
+                source .venv/bin/activate
                 pip install -r requirements.txt
                 pip install flake8
                 flake8 .
                 """
             }
+        }
         }
         stage('Lint Notification Service') {
             when { expression { env.SERVICES_CHANGED.contains("notification-service") } }
