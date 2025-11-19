@@ -35,6 +35,7 @@ pipeline {
                 sh """
                 set -e
                 cd transaction-service
+                apt install -y python3-pip
                 pip install -r requirements.txt
                 pip install flake8
                 flake8 .
