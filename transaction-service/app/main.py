@@ -8,5 +8,5 @@ def health():
 
 @app.get("/")
 def main():
-    return {"message": "Welcome to the Transaction Serviceeee"}
+    return {"message": "Welcome to the Transaction Serviceeeee"}
 
