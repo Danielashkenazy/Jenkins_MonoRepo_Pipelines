@@ -7,6 +7,6 @@ app.get("/health", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`user-service running on port ${port}`);
-  console.log('detect changes test22211')
+  console.log("user-service running on port ${port}");
+  console.log("detect changes test22211");
 });
