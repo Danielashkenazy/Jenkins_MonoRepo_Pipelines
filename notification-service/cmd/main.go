@@ -12,7 +12,6 @@ func main() {
     })
 
     fmt.Println("notification-service running on port 8080")
-    fmt.Println("Welcome to the Notification Serviceeeeeeeeeeeeeeeaweawewewe")
+    fmt.Println("Welcome to the Notification Serviceeeeeeeeeeeeeeeawweweeawewewe")
     http.ListenAndServe(":8080", nil)
 }
-

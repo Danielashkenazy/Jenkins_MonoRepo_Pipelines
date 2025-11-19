@@ -18,6 +18,7 @@ pipeline {
                 }
             }
         }
+
         stage('Lint User Service') {
             when { expression { env.SERVICES_CHANGED.contains("user-service") } }
             steps {
@@ -29,6 +30,7 @@ pipeline {
                 """
             }
         }
+
         stage('Lint Transaction Service') {
             when { expression { env.SERVICES_CHANGED.contains("transaction-service") } }
             steps {
@@ -43,7 +45,7 @@ pipeline {
                 """
             }
         }
-        }
+
         stage('Lint Notification Service') {
             when { expression { env.SERVICES_CHANGED.contains("notification-service") } }
             steps {
@@ -57,5 +59,4 @@ pipeline {
             }
         }
     }
-
-
+}
