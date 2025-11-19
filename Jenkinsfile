@@ -2,10 +2,22 @@ pipeline {
     agent any
 
     stages {
-        stage('Init') {
+        stage('Detect Changed Services') {
             steps {
-                echo "Pipeline triggered. Commit: ${env.GIT_COMMIT}"
+                script {
+                    def changes = sh(script: "bash shared/ci/detect_changes.sh", returnStdout: true).trim()
+                    echo "Changed Services: ${changes}"
+
+                    if (changes == "") {
+                        echo "No services changed. Skipping..."
+                        currentBuild.result = 'SUCCESS'
+                        return
+                    }
+
+                    env.SERVICES_CHANGED = changes
+                }
             }
         }
     }
 }
+
