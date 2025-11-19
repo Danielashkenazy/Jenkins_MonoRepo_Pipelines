@@ -18,6 +18,41 @@ pipeline {
                 }
             }
         }
+        stage('Lint User Service') {
+            when { expression { env.SERVICES_CHANGED.contains("user-service") } }
+            steps {
+                sh """
+                set -e
+                cd user-service
+                npm install
+                npx eslint .
+                """
+            }
+        }
+        stage('Lint Transaction Service') {
+            when { expression { env.SERVICES_CHANGED.contains("transaction-service") } }
+            steps {
+                sh """
+                set -e
+                cd transaction-service
+                pip install -r requirements.txt
+                pip install flake8
+                flake8 .
+                """
+            }
+        }
+        stage('Lint Notification Service') {
+            when { expression { env.SERVICES_CHANGED.contains("notification-service") } }
+            steps {
+                sh """
+                set -e
+                cd notification-service
+                go mod tidy
+                go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+                golangci-lint run
+                """
+            }
+        }
     }
 }
 
