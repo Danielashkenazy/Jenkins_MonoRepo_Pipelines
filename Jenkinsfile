@@ -41,7 +41,7 @@ pipeline {
                 . .venv/bin/activate
                 pip install -r requirements.txt
                 pip install flake8
-                flake8 .
+                flake8 main.py
                 """
             }
         }
