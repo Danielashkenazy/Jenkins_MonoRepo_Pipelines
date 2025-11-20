@@ -13,7 +13,7 @@ func main() {
         }
     })
 
-    log.Println("Starting notification-serviceeeeeeee on :8080")
+    log.Println("Starting notification-serviceee12312311111111111eeeee on :8080")
     if err := http.ListenAndServe(":8080", nil); err != nil {
         log.Fatalf("Server failed to start: %v", err)
     }
