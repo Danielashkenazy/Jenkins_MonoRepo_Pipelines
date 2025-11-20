@@ -58,5 +58,83 @@ pipeline {
                 """
             }
         }
+
+        // ========== UNIT TESTING STAGES ==========
+
+        stage('Test User Service') {
+            when { expression { env.SERVICES_CHANGED.contains("user-service") } }
+            steps {
+                sh """
+                set -e
+                cd user-service
+                npm install
+                npm test -- --coverage --reporters=default --reporters=jest-junit
+                """
+            }
+            post {
+                always {
+                    junit 'user-service/junit.xml'
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'user-service/coverage',
+                        reportFiles: 'index.html',
+                        reportName: 'User Service Coverage Report'
+                    ])
+                }
+            }
+        }
+
+        stage('Test Transaction Service') {
+            when { expression { env.SERVICES_CHANGED.contains("transaction-service") } }
+            steps {
+                sh """
+                set -e
+                cd transaction-service
+                . .venv/bin/activate
+                pip install pytest pytest-cov
+                pytest --cov=. --cov-report=html --cov-report=xml --junitxml=junit.xml
+                """
+            }
+            post {
+                always {
+                    junit 'transaction-service/junit.xml'
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'transaction-service/htmlcov',
+                        reportFiles: 'index.html',
+                        reportName: 'Transaction Service Coverage Report'
+                    ])
+                }
+            }
+        }
+
+        stage('Test Notification Service') {
+            when { expression { env.SERVICES_CHANGED.contains("notification-service") } }
+            steps {
+                sh """
+                set -e
+                cd notification-service
+                go mod tidy
+                go test -v -coverprofile=coverage.out -covermode=atomic ./...
+                go tool cover -html=coverage.out -o coverage.html
+                """
+            }
+            post {
+                always {
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'notification-service',
+                        reportFiles: 'coverage.html',
+                        reportName: 'Notification Service Coverage Report'
+                    ])
+                }
+            }
+        }
     }
 }
