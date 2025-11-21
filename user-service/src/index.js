@@ -7,7 +7,7 @@ function validateUser(data) {
 app.post("/users", (req, res) => {
   const user = req.body;
   if (!validateUser(user)) {
-    return res.status(400).json({ error: "invalid user" });
+    return res.status(400).json({ error: "invalid userr" });
   }
   res.status(201).json({ status: "created", user });
 });

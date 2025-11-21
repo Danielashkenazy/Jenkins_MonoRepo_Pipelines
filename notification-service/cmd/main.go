@@ -57,6 +57,6 @@ func main() {
 
     http.HandleFunc("/notify", NotifyHandler)
 
-    log.Println("Starting notification-service on :8080")
+    log.Println("Sstarting notification-service on :8080")
     log.Fatal(http.ListenAndServe(":8080", nil))
 }
