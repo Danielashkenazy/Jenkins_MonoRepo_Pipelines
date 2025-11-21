@@ -137,5 +137,38 @@ pipeline {
                 }
             }
         }
+        // Security check stages //
+        stage('Security Scan User Service') {
+            when { expression { env.SERVICES_CHANGED.contains("user-service") } }
+            steps {
+                sh """
+                set -e
+                cd user-service
+                npm audit --audit-level=moderate
+                """
+            }
+        }
+        stage('Security Scan Transaction Service') {
+            when { expression { env.SERVICES_CHANGED.contains("transaction-service") } }
+            steps {
+                sh """
+                set -e
+                cd transaction-service
+                . .venv/bin/activate
+                pip install bandit
+                bandit -r . -ll
+                """
+            }
+        }
+        stage('Security Scan Notification Service') {
+            when { expression { env.SERVICES_CHANGED.contains("notification-service") } }
+            steps {
+                sh """
+                set -e
+                cd notification-service
+                gosec ./...
+                """ 
+            }
+        }
     }
 }
