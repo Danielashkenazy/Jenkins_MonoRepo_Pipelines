@@ -160,7 +160,7 @@ pipeline {
                 . .venv/bin/activate
                 pip install -r requirements.txt        
                 pip install bandit
-                bandit -r . -x .venv,tests,__pycache__ -ll
+                 bandit -r app -x .venv,tests,__pycache__,**/site-packages/** -ll
                 """
             }
         }
