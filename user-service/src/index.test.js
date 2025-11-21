@@ -1,9 +1,18 @@
-const { validateUser } = require("./index");
+const request = require("supertest");
+const { app } = require("./index");
 
-test("valid user", () => {
-  expect(validateUser({ name: "Dan", email: "dan@example.com" })).toBe(true);
+test("valid user", async () => {
+  const res = await request(app)
+    .post("/users")
+    .send({ name: "Dan", email: "dan@example.com" });
+
+  expect(res.status).toBe(201);
 });
 
-test("invalid email", () => {
-  expect(validateUser({ name: "Dan", email: "bad" })).toBe(false);
+test("invalid user", async () => {
+  const res = await request(app)
+    .post("/users")
+    .send({ name: "d", email: "bad" });
+
+  expect(res.status).toBe(400);
 });
