@@ -19,11 +19,14 @@ func ValidateEmail(email string) bool {
 }
 
 func NotifyHandler(w http.ResponseWriter, r *http.Request) {
-    defer r.Body.Close()
-
     w.Header().Set("Content-Type", "application/json")
 
-    r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1MB
+    r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
+    defer func() {
+        if err := r.Body.Close(); err != nil {
+            log.Printf("error closing request body: %v", err)
+        }
+    }()
 
     var req NotificationRequest
     if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -57,6 +60,6 @@ func main() {
 
     http.HandleFunc("/notify", NotifyHandler)
 
-    log.Println("Sstarting notification-service on :8080")
+    log.Println("Starting notification-service on :8080")
     log.Fatal(http.ListenAndServe(":8080", nil))
 }
