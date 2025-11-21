@@ -7,9 +7,9 @@ pipeline {
                 script {
                     def changes = sh(script: "bash shared/ci/detect_changes.sh", returnStdout: true).trim()
                     echo "Changed Services: ${changes}"
-
                     if (changes == "") {
                         echo "No services changed. Skipping..."
+                        env.SERVICES_CHANGED = ""
                         currentBuild.result = 'SUCCESS'
                         return
                     }
