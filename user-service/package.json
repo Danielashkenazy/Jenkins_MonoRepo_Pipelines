@@ -13,7 +13,9 @@
     "jest-junit": "^16.0.0"
   },
   "jest-junit": {
-  "output": "junit.xml"
-}
-  
+    "output": "junit.xml"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.4"
+  }
 }
