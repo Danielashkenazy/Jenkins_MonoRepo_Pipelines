@@ -154,9 +154,13 @@ pipeline {
                 sh """
                 set -e
                 cd transaction-service
+                if [ ! -d ".venv" ]; then
+                    python3 -m venv .venv
+                fi
                 . .venv/bin/activate
+                pip install -r requirements.txt        
                 pip install bandit
-                bandit -r . -ll
+                bandit -r . -x .venv,tests,__pycache__ -ll
                 """
             }
         }
