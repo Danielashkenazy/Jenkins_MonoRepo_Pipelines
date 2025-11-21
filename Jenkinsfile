@@ -92,11 +92,12 @@ pipeline {
                 sh """
                 set -e
                 cd transaction-service
+                python3 -m venv .venv || true
                 . .venv/bin/activate
                 pip install pytest pytest-cov
                 pytest --cov=. --cov-report=html --cov-report=xml --junitxml=junit.xml
                 """
-            }
+            } 
             post {
                 always {
                     junit 'transaction-service/junit.xml'

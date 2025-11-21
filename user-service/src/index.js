@@ -1,12 +1,15 @@
-const express = require("express");
-const app = express();
-const port = process.env.PORT || 3000;
+function validateUser(data) {
+  if (!data.name || data.name.length < 2) return false;
+  if (!data.email || !data.email.includes("@")) return false;
+  return true;
+}
 
-app.get("/health", (req, res) => {
-  res.json({ status: "ok", service: "user-service" });
+app.post("/users", (req, res) => {
+  const user = req.body;
+  if (!validateUser(user)) {
+    return res.status(400).json({ error: "invalid user" });
+  }
+  res.status(201).json({ status: "created", user });
 });
 
-app.listen(port, () => {
-  console.log("user-service running on port ${port}");
-  console.log("detect changes test222112312313131231");
-});
+module.exports = { validateUser, app };
