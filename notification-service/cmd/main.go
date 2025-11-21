@@ -7,17 +7,24 @@ import (
     "regexp"
 )
 
+var emailRegex = regexp.MustCompile(`^[\w._%+-]+@[\w.-]+\.[a-zA-Z]{2,}$`)
+
 type NotificationRequest struct {
     Email   string `json:"email"`
     Message string `json:"message"`
 }
 
 func ValidateEmail(email string) bool {
-    regex := regexp.MustCompile(`^[\w._%+-]+@[\w.-]+\.[a-zA-Z]{2,}$`)
-    return regex.MatchString(email)
+    return emailRegex.MatchString(email)
 }
 
 func NotifyHandler(w http.ResponseWriter, r *http.Request) {
+    defer r.Body.Close()
+
+    w.Header().Set("Content-Type", "application/json")
+
+    r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1MB
+
     var req NotificationRequest
     if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
         http.Error(w, "invalid json", http.StatusBadRequest)
@@ -35,12 +42,17 @@ func NotifyHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     w.WriteHeader(http.StatusOK)
-    w.Write([]byte(`{"status": "sent"}`))
+    if _, err := w.Write([]byte(`{"status": "sent"}`)); err != nil {
+        log.Printf("write error: %v", err)
+    }
 }
 
 func main() {
     http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-        w.Write([]byte(`{"status": "ok", "service": "notification-service"}`))
+        w.Header().Set("Content-Type", "application/json")
+        if _, err := w.Write([]byte(`{"status": "ok", "service": "notification-service"}`)); err != nil {
+            log.Printf("write error: %v", err)
+        }
     })
 
     http.HandleFunc("/notify", NotifyHandler)
