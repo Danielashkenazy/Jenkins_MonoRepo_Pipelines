@@ -157,12 +157,13 @@ pipeline {
             }
         }
         stage('Ready for Deployment') {
-            when { expression { env.SERVICES_CHANGED?.trim() } }
-            agent none
+            when { 
+                expression { 
+                    return env.SERVICES_CHANGED?.trim() 
+                } 
+            }
             steps {
-                script {
-                    input message: "Approve deployment?", ok: "Proceed"
-                }
+                input 'Deploy to Docker Hub?'
             }        
         }
 
