@@ -163,7 +163,38 @@ pipeline {
                 } 
             }
             steps {
-                input 'Deploy to Docker Hub?'
+                script {
+                    def userInput = false
+                    def submitter = null
+                    
+                    try {
+                        timeout(time: 10, unit: 'MINUTES') {
+                            userInput = input(
+                                id: 'Proceed1', 
+                                message: 'Deploy to Docker Hub?', 
+                                parameters: [
+                                    [$class: 'BooleanParameterDefinition', 
+                                     defaultValue: true, 
+                                     description: '', 
+                                     name: 'Please confirm you agree with this']
+                                ],
+                                submitterParameter: 'approver'
+                            )
+                            submitter = userInput['approver']
+                        }
+                    } catch(err) {
+                        def user = err.getCauses()[0].getUser()
+                        if('SYSTEM' == user.toString()) {
+                            echo "Timeout - aborting"
+                        } else {
+                            echo "Aborted by: [${user}]"
+                        }
+                        currentBuild.result = 'ABORTED'
+                        error("Deployment cancelled")
+                    }
+                    
+                    echo "✅ Deployment approved by: ${submitter}"
+                }
             }        
         }
 
