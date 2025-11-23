@@ -156,31 +156,31 @@ pipeline {
                 """
             }
         }
-        
+
         stage('Build Docker Images') {
             when { expression { env.SERVICES_CHANGED } }
             steps {
                 script {
                     def shortSha = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
                     def services = env.SERVICES_CHANGED.split(" ")
-        
+
                     withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         sh """
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         """
                     }
-        
+
                     services.each { svc ->
                         sh """
                         cd ${svc}
-                        docker build -t danielashkenazy/${svc}:ci-${shortSha} .
-                        docker push danielashkenazy/${svc}:ci-${shortSha}
+                        docker build -t danielashkenazy1/${svc}:ci-${shortSha} .
+                        docker push danielashkenazy1/${svc}:ci-${shortSha}
                         """
                     }
                 }
             }
         }
-        
+
 
     }   // <-- END stages
 
