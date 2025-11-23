@@ -176,5 +176,39 @@ pipeline {
                 """ 
             }
         }
+        stage('Build Docker Images') {
+            when { expression { env.SERVICES_CHANGED } }
+            steps {
+                script {
+                    def shortSha = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    def services = env.SERVICES_CHANGED.split(" ")
+
+                    services.each { svc ->
+                        sh """
+                        cd ${svc}
+                        docker build -t danielashkenazy/${svc}:ci-${shortSha} .
+                        docker push danielashkenazy/${svc}:ci-${shortSha}
+                        """
+                    }
+                }
+            }
+        }
+        post {
+            always {
+                script {
+                    def status = currentBuild.result ?: "SUCCESS"
+                    def emoji = (status == "SUCCESS") ? "✅" : "❌"
+        
+                    withCredentials([string(credentialsId: 'slack_webhook', variable: 'SLACK_URL')]) {
+                        sh """
+                        curl -X POST -H 'Content-type: application/json' \
+                        --data '{"text": "${emoji} *Pipeline Status:* ${status}\n*Branch:* ${env.GIT_BRANCH}\n*Commit:* ${env.GIT_COMMIT}"}' \
+                        $SLACK_URL
+                        """
+                    }
+                }
+            }
+        }
+        
     }
 }
