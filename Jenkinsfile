@@ -157,7 +157,7 @@ pipeline {
             }
         }
         stage('Ready for Deployment') {
-            when { expression { env.SERVICES_CHANGED } }
+            when { expression { env.SERVICES_CHANGED?.trim() } }
             steps {
                 script {
                     input message: "Approve deployment?", ok: "Proceed"
