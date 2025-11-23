@@ -47,7 +47,7 @@ func NotifyHandler(w http.ResponseWriter, r *http.Request) {
 
     w.WriteHeader(http.StatusOK)
     if _, err := w.Write([]byte(`{"status": "sent"}`)); err != nil {
-        log.Printf("wwwwwwwrite error: %v", err)
+        log.Printf("wwrite error: %v", err)
     }
 }
 
