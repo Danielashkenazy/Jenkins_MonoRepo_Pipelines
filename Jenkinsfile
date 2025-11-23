@@ -156,6 +156,14 @@ pipeline {
                 """
             }
         }
+        stage('Ready for Deployment') {
+            when { expression { env.SERVICES_CHANGED } }
+            steps {
+                script {
+                    input message: "Approve deployment?", ok: "Proceed"
+                }
+            }        
+        }
 
         stage('Build Docker Images') {
             when { expression { env.SERVICES_CHANGED } }
@@ -182,7 +190,7 @@ pipeline {
         }
 
 
-    }   // <-- END stages
+    }   
 
     post {
         always {
