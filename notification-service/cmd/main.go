@@ -5,6 +5,7 @@ import (
     "log"
     "net/http"
     "regexp"
+    "time"
 )
 
 var emailRegex = regexp.MustCompile(`^[\w._%+-]+@[\w.-]+\.[a-zA-Z]{2,}$`)
@@ -51,15 +52,25 @@ func NotifyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-    http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+    mux := http.NewServeMux()
+
+    mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
         w.Header().Set("Content-Type", "application/json")
         if _, err := w.Write([]byte(`{"status": "ok", "service": "notification-service"}`)); err != nil {
-            log.Printf("wwwwwswwwwwwrite error: %v", err)
+            log.Printf("write error: %v", err)
         }
     })
 
-    http.HandleFunc("/notify", NotifyHandler)
+    mux.HandleFunc("/notify", NotifyHandler)
+
+    srv := &http.Server{
+        Addr:         ":8080",
+        Handler:      mux,
+        ReadTimeout:  5 * time.Second,
+        WriteTimeout: 10 * time.Second,
+        IdleTimeout:  120 * time.Second,
+    }
 
     log.Println("Starting notification-service on :8080")
-    log.Fatal(http.ListenAndServe(":8080", nil))
+    log.Fatal(srv.ListenAndServe())
 }

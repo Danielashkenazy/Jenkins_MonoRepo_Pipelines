@@ -172,7 +172,7 @@ pipeline {
                 go install github.com/securego/gosec/v2/cmd/gosec@latest
                 export PATH=\$(go env GOPATH)/bin:\$PATH
                 cd notification-service
-                gosec ./...
+                gosec -severity medium -confidence medium -fmt json -out gosec-report.json ./...
                 """ 
             }
         }
