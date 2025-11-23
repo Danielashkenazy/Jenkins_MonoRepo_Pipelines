@@ -54,7 +54,7 @@ func main() {
     http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
         w.Header().Set("Content-Type", "application/json")
         if _, err := w.Write([]byte(`{"status": "ok", "service": "notification-service"}`)); err != nil {
-            log.Printf("wwwwwwwwwwrite error: %v", err)
+            log.Printf("wwwwwswwwwwwrite error: %v", err)
         }
     })
 

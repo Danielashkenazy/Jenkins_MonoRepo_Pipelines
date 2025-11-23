@@ -169,6 +169,8 @@ pipeline {
             steps {
                 sh """
                 set -e
+                go install github.com/securego/gosec/v2/cmd/gosec@latest
+                export PATH=\$(go env GOPATH)/bin:\$PATH
                 cd notification-service
                 gosec ./...
                 """ 
