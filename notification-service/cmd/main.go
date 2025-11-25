@@ -41,7 +41,7 @@ func NotifyHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     if req.Message == "" {
-        http.Error(w, "mmmmessage cannot be empty", http.StatusBadRequest)
+        http.Error(w, "mmmmmessage cannot be empty", http.StatusBadRequest)
         return
     }
 
