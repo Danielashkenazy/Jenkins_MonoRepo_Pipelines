@@ -1,3 +1,4 @@
+        }
 // ========================================
 // Reusable Groovy Functions 
 // ========================================
@@ -74,8 +75,11 @@ pipeline {
                     echo "Running secrets detection with TruffleHog..."
                     def excludePaths = "'**/.venv' '**/node_modules' '**/package-lock.json' '**/*.pyc' '**/*dist-info/RECORD'"
                     sh """
-                    docker run --rm -v "\$(pwd):/scan" trufflesecurity/trufflehog:latest filesystem /scan --fail --no-update \\
-                    --exclude-paths ${excludePaths}
+                    docker run --rm \
+                    -v "\$(pwd):/scan" \
+                    trufflesecurity/trufflehog:latest \
+                    filesystem /scan --fail --no-update \
+                    --exclude-paths shared/ci/trufflehog_exclude.txt
                     """
                 }
             }
@@ -270,6 +274,5 @@ pipeline {
                     """
                 }
             }
-        }
     }
 }
