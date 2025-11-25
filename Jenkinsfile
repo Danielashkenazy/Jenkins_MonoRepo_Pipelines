@@ -73,7 +73,12 @@ pipeline {
                 script {
                     echo "Running secrets detection with TruffleHog..."
                     sh """
-                    docker run --rm -v "\$(pwd):/scan" trufflesecurity/trufflehog:latest filesystem /scan --fail --no-update
+                    docker run --rm -v "\$(pwd):/scan" trufflesecurity/trufflehog:latest filesystem /scan --fail --no-update \
+                    --exclude='**/.venv' \
+                    --exclude='**/node_modules' \
+                    --exclude='**/package-lock.json' \
+                    --exclude='**/*.pyc' \
+                    --exclude='**/*dist-info/RECORD'
                     """
                 }
             }
