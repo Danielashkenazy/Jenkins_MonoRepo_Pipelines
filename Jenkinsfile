@@ -1,3 +1,49 @@
+// ========================================
+// Reusable Groovy Functions 
+// ========================================
+def runLintForServices() {
+    sh "bash shared/ci/lint.sh '${env.SERVICES_CHANGED}'"
+}
+
+def runTestsForServices() {
+    sh "bash shared/ci/test.sh '${env.SERVICES_CHANGED}'"
+}
+
+def runSecurityScanForServices() {
+    sh "bash shared/ci/scan.sh '${env.SERVICES_CHANGED}'"
+}
+
+def publishReportsForService(service) {
+    // JUnit report (if exists)
+    if (fileExists("${service}/junit.xml")) {
+        junit "${service}/junit.xml"
+    }
+    
+    // Coverage report
+    if (fileExists("${service}/coverage/index.html")) {
+        publishHTML(target: [
+            reportDir: "${service}/coverage",
+            reportFiles: 'index.html',
+            reportName: "${service} Coverage Report"
+        ])
+    } else if (fileExists("${service}/htmlcov/index.html")) {
+        publishHTML(target: [
+            reportDir: "${service}/htmlcov",
+            reportFiles: 'index.html',
+            reportName: "${service} Coverage Report"
+        ])
+    } else if (fileExists("${service}/coverage.html")) {
+        publishHTML(target: [
+            reportDir: service,
+            reportFiles: 'coverage.html',
+            reportName: "${service} Coverage Report"
+        ])
+    }
+}
+
+// ========================================
+// Pipeline Definition
+// ========================================
 pipeline {
     agent { label 'linux' }
 
@@ -9,7 +55,8 @@ pipeline {
                     def changes = sh(script: "bash shared/ci/detect_changes.sh", returnStdout: true).trim()
                     echo "Changed Services: ${changes}"
 
-                    if (!changes) {
+                    if (changes == "") {
+                        echo "No services changed. Skipping..."
                         env.SERVICES_CHANGED = ""
                         currentBuild.result = 'SUCCESS'
                         return
@@ -20,53 +67,96 @@ pipeline {
             }
         }
 
+        stage('Secrets Detection') {
+            when { expression { env.SERVICES_CHANGED?.trim() } }
+            steps {
+                script {
+                    echo "Running secrets detection with TruffleHog..."
+                    sh """
+                    docker run --rm -v "\$(pwd):/scan" trufflesecurity/trufflehog:latest filesystem /scan --fail --no-update
+                    """
+                }
+            }
+        }
 
         stage('Run Services in Parallel') {
             when { expression { env.SERVICES_CHANGED?.trim() } }
-
+            
             parallel {
 
                 stage('User Service Pipeline') {
                     when { expression { env.SERVICES_CHANGED.contains("user-service") } }
-
+                    
                     stages {
-
                         stage('Lint User Service') {
                             steps {
-                                sh """
-                                cd user-service
-                                npm install
-                                npx eslint .
-                                """
+                                script {
+                                    sh "bash shared/ci/lint.sh 'user-service'"
+                                }
                             }
                         }
 
                         stage('Test User Service') {
                             steps {
-                                sh """
-                                cd user-service
-                                npm install
-                                npm test -- --coverage --reporters=default --reporters=jest-junit
-                                """
+                                script {
+                                    sh "bash shared/ci/test.sh 'user-service'"
+                                }
                             }
                             post {
                                 always {
-                                    junit 'user-service/junit.xml'
-                                    publishHTML(target: [
-                                        reportDir: 'user-service/coverage',
-                                        reportFiles: 'index.html',
-                                        reportName: 'User Service Coverage Report'
-                                    ])
+                                    script {
+                                        publishReportsForService('user-service')
+                                    }
                                 }
                             }
                         }
 
                         stage('Security Scan User Service') {
                             steps {
-                                sh """
-                                cd user-service
-                                npm audit --audit-level=moderate
-                                """
+                                retry(2) {
+                                    script {
+                                        sh "bash shared/ci/scan.sh 'user-service'"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                stage('Transaction Service Pipeline') {
+                    when { expression { env.SERVICES_CHANGED.contains("transaction-service") } }
+                    
+                    stages {
+                        stage('Lint Transaction Service') {
+                            steps {
+                                script {
+                                    sh "bash shared/ci/lint.sh 'transaction-service'"
+                                }
+                            }
+                        }
+
+                        stage('Test Transaction Service') {
+                            steps {
+                                script {
+                                    sh "bash shared/ci/test.sh 'transaction-service'"
+                                }
+                            }
+                            post {
+                                always {
+                                    script {
+                                        publishReportsForService('transaction-service')
+                                    }
+                                }
+                            }
+                        }
+
+                        stage('Security Scan Transaction Service') {
+                            steps {
+                                retry(2) {
+                                    script {
+                                        sh "bash shared/ci/scan.sh 'transaction-service'"
+                                    }
+                                }
                             }
                         }
                     }
@@ -74,55 +164,44 @@ pipeline {
 
                 stage('Notification Service Pipeline') {
                     when { expression { env.SERVICES_CHANGED.contains("notification-service") } }
-
+                    
                     stages {
-
                         stage('Lint Notification Service') {
                             steps {
-                                sh """
-                                cd notification-service
-                                go mod tidy
-                                go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-                                golangci-lint run
-                                """
+                                script {
+                                    sh "bash shared/ci/lint.sh 'notification-service'"
+                                }
                             }
                         }
 
                         stage('Test Notification Service') {
                             steps {
-                                sh """
-                                cd notification-service
-                                go mod tidy
-                                go test -v -coverprofile=coverage.out -covermode=atomic ./...
-                                go tool cover -html=coverage.out -o coverage.html
-                                """
+                                script {
+                                    sh "bash shared/ci/test.sh 'notification-service'"
+                                }
                             }
                             post {
                                 always {
-                                    publishHTML(target: [
-                                        reportDir: 'notification-service',
-                                        reportFiles: 'coverage.html',
-                                        reportName: 'Notification Service Coverage Report'
-                                    ])
+                                    script {
+                                        publishReportsForService('notification-service')
+                                    }
                                 }
                             }
                         }
 
                         stage('Security Scan Notification Service') {
                             steps {
-                                sh """
-                                go install github.com/securego/gosec/v2/cmd/gosec@latest
-                                export PATH=\$(go env GOPATH)/bin:\$PATH
-                                cd notification-service
-                                gosec -severity medium -confidence medium -fmt json -out gosec-report.json ./...
-                                """
+                                retry(2) {
+                                    script {
+                                        sh "bash shared/ci/scan.sh 'notification-service'"
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
-
 
         stage('Ready for Deployment') {
             when { expression { env.SERVICES_CHANGED?.trim() } }
@@ -150,7 +229,6 @@ pipeline {
             }
         }
 
-
         stage('Build Docker Images') {
             when { expression { env.SERVICES_CHANGED } }
             steps {
@@ -175,7 +253,6 @@ pipeline {
             }
         }
     }
-
 
     post {
         always {
