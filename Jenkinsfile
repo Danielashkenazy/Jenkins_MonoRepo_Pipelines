@@ -79,7 +79,7 @@ pipeline {
                     -v "\$(pwd):/scan" \
                     trufflesecurity/trufflehog:latest \
                     filesystem /scan --fail --no-update \
-                    --exclude-paths shared/ci/trufflehog_exclude.txt
+                    --exclude-paths /scan/shared/ci/trufflehog_exclude.txt
                     """
                 }
             }
