@@ -19,7 +19,7 @@ app.post("/users", (req, res) => {
 });
 
 if (require.main === module) {
-  app.listen(3000, () => console.log("ussssSssser-service running"));
+  app.listen(3000, () => console.log("usssssSssser-service running"));
 }
 
 module.exports = { app, validateUser };
