@@ -1,2 +1,11 @@
+# Secrets
 secret-file
-agent.jar
+*.env
+
+# Binaries & Dependencies
+*.jar
+node_modules/
+__pycache__/
+bin/
+obj/
+
