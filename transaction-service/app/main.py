@@ -8,7 +8,7 @@ def compute_total(transactions: list[float]) -> float:
 @app.post("/transactions/total")
 def total(data: dict):
     if "transactions" not in data or not isinstance(data["transactions"], list):
-        raise HTTPException(status_code=400, detail="ttttttransactions must be a list")
+        raise HTTPException(status_code=400, detail="tttttttransactions must be a list")
 
     result = compute_total(data["transactions"])
     return {"total": result}
